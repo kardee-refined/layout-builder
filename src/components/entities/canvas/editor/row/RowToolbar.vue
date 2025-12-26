@@ -1,4 +1,4 @@
-<script setup lang="ts">
+ewdrdrf5<script setup lang="ts">
 import { Image, Settings, Trash2 } from "lucide-vue-next";
 </script>
 

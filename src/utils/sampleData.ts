@@ -13,12 +13,12 @@ const generateColumnRow = (): ColumnRowEntity => {
     id: nanoid(),
     type: STRUCTURE_ENTITY.COLUMN_ROW,
     component: "text",
-    props: { text: "Sample Text" },
+    props: { text: (Date.now() + Math.floor(Math.random() * 1000)).toString() },
   };
 };
 
 const generateColumn = (): ColumnEntity => {
-  const colRowCount = 1; 
+  const colRowCount = 1;
   return {
     id: nanoid(),
     type: STRUCTURE_ENTITY.COLUMN,
@@ -29,7 +29,7 @@ const generateColumn = (): ColumnEntity => {
   };
 };
 
-const generateRow = (): RowEntity => {
+export const generateRow = (): RowEntity => {
   const columns = Array.from({ length: 6 }, () => generateColumn());
 
   return {
@@ -38,13 +38,13 @@ const generateRow = (): RowEntity => {
     settings: {
       gap: 5,
       layout: [],
-      numOfColumns: 2,
+      numOfColumns: 6,
     },
     children: columns,
   };
 };
 
-function generateSection(): SectionEntity {
+export function generateSection(): SectionEntity {
   const rows = Array.from({ length: 1 }, () => generateRow());
 
   return {

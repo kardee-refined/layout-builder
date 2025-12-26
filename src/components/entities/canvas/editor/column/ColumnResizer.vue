@@ -1,5 +1,8 @@
 <template>
-  <div v-if="visible" class="flex justify-center items-center">
+  <div
+    class="flex justify-center items-center"
+    :style="{ visibility: visible ? 'visible' : 'hidden' }"
+  >
     <div
       class="cursor-col-resize w-1 h-10 bg-blue-500 rounded-sm touch-none select-none"
       @pointerdown="onPointerDown"
@@ -8,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   visible: boolean;
 }>();
 

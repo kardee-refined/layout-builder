@@ -1,24 +1,23 @@
 <script setup lang="ts">
-import { MoveVertical, Cog, Copy, Trash2 } from "lucide-vue-next";
-
+const emit = defineEmits<{ (e: 'click', type: string): void }>();
 const tools = [
-  { icon: MoveVertical, color: "text-white" },
-  { icon: Cog, color: "text-white" },
-  { icon: Copy, color: "text-white" },
-  { icon: Trash2, color: "text-white" },
+  { icon: "i-lucide-move-vertical", color: "text-white", type: "move" },
+  { icon: "i-lucide-cog", color: "text-white", type: "settings" },
+  { icon: "i-lucide-copy", color: "text-white", type: "copy" },
+  { icon: "i-lucide-trash-2", color: "text-white", type: "delete" },
 ];
 </script>
 
 <template>
-  <aside
-    class="bg-blue-500 text-white w-42.5 shadow-xl flex items-center gap-4"
-  >
-    <button
+  <div class="bg-primary w-42.5 h-9 shadow-xl flex items-center gap-4">
+    <UButton
       v-for="(t, i) in tools"
       :key="i"
-      class="p-2 rounded-lg hover:bg-blue-600 transition"
-    >
-      <component :is="t.icon" class="w-4 h-2" />
-    </button>
-  </aside>
+      :icon="t.icon"
+      size="sm"
+      variant="ghost"
+      class="text-white"
+      @click="emit('click', t.type)"
+    />
+  </div>
 </template>

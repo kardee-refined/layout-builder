@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 
 const elRef = ref<HTMLDivElement | null>(null);
 
@@ -12,31 +12,47 @@ const emit = defineEmits<{
   dragStart: [];
 }>();
 
-let cleanup = () => {};
+let cleanup: (() => void) | null = null;
 
-onMounted(() => {
-  if (elRef.value == null) {
+const setupDraggable = () => {
+  cleanup?.();
+  cleanup = null;
+
+  if (!elRef.value || !props.options) {
     return;
   }
-  draggable({
+
+  cleanup = draggable({
     element: elRef.value,
     getInitialData() {
       return {
-        ...props.options,
+        type: "sidebar_item",
+        item: props.options,
       };
     },
     onDragStart() {
       console.log("Draggin started");
-      emit('dragStart');
+      emit("dragStart");
     },
     onDrop() {
-      console.log("Dropped");
+      console.log("Dropped", props.options);
     },
   });
+};
+
+onMounted(() => {
+  setupDraggable();
 });
 
+watch(
+  () => props.options,
+  () => {
+    setupDraggable();
+  }
+);
+
 onUnmounted(() => {
-  cleanup();
+  cleanup?.();
 });
 </script>
 
