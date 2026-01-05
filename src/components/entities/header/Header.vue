@@ -13,11 +13,15 @@ const modal = overlay.create(PresetsModal);
 const props = defineProps<{
   isPublished: boolean;
   showPresets?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "toggle-publish"): void;
   (e: "preset-select", presetId: string): void;
+  (e: "undo"): void;
+  (e: "redo"): void;
 }>();
 
 const publishLabel = computed(() => (props.isPublished ? "Edit" : "Publish"));
@@ -61,9 +65,25 @@ function open() {
         @click="open"
       />
       <USeparator orientation="vertical" class="h-8" />
-      <UButton icon="lucide:undo-2" variant="ghost" color="neutral" size="md" />
-      <UButton icon="lucide:redo-2" variant="ghost" color="neutral" size="md" />
-      <USeparator orientation="vertical" class="h-8" />
+      <template v-if="!props.isPublished">
+        <UButton
+          icon="lucide:undo-2"
+          variant="ghost"
+          color="neutral"
+          size="md"
+          :disabled="!props.canUndo"
+          @click="emit('undo')"
+        />
+        <UButton
+          icon="lucide:redo-2"
+          variant="ghost"
+          color="neutral"
+          size="md"
+          :disabled="!props.canRedo"
+          @click="emit('redo')"
+        />
+        <USeparator orientation="vertical" class="h-8" />
+      </template>
 
       <UButton variant="soft" color="neutral" size="md"> Cancel </UButton>
       <div
