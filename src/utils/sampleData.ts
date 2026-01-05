@@ -12,8 +12,13 @@ const generateColumnRow = (): ColumnRowEntity => {
   return {
     id: nanoid(),
     type: STRUCTURE_ENTITY.COLUMN_ROW,
-    component: "text",
-    props: { text: (Date.now() + Math.floor(Math.random() * 1000)).toString() },
+    component: "button",
+    props: {
+      label: "Learn more",
+      color: "error",
+      variant: "solid",
+      size: "xl",
+    },
   };
 };
 

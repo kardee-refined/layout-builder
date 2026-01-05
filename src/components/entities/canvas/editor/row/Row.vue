@@ -125,20 +125,142 @@ function insertColumnRow(
   const targetCol = findColumnById(row, payload.targetColumnId);
   if (!targetCol) return;
 
+  const componentType = (payload.item.type ?? payload.item.title).toLowerCase();
+  const baseProps =
+    componentType === "text"
+      ? {
+          title: payload.item.title,
+          text: payload.item.title,
+          icon: payload.item.icon,
+          bg: payload.item.bg,
+          color: "#000000",
+          fontSize: 16,
+          bold: false,
+          italic: false,
+          underline: false,
+          align: "left",
+        }
+      : componentType === "image"
+      ? {
+          title: payload.item.title,
+          src: "",
+          alt: "Image",
+          width: 320,
+          height: 180,
+          radius: 12,
+          fit: "cover",
+          align: "left",
+        }
+      : componentType === "video"
+      ? {
+          title: payload.item.title,
+          src: "",
+          width: 480,
+          height: 270,
+          align: "left",
+        }
+      : componentType === "button"
+      ? {
+          title: payload.item.title,
+          text: "Button",
+          href: "#",
+          bg: "#2563EB",
+          color: "#FFFFFF",
+          radius: 8,
+          align: "left",
+        }
+      : componentType === "spacer"
+      ? {
+          title: payload.item.title,
+          height: 24,
+          align: "left",
+        }
+      : componentType === "divider"
+      ? {
+          title: payload.item.title,
+          color: "#E5E7EB",
+          thickness: 1,
+          align: "left",
+        }
+      : componentType === "icon"
+      ? {
+          title: payload.item.title,
+          name: "lucide:star",
+          size: 24,
+          color: "#111827",
+          align: "left",
+        }
+      : componentType === "hero"
+      ? {
+          title: "Hero headline",
+          subtitle: "Short supporting line goes here.",
+          buttonText: "Get Started",
+          buttonUrl: "#",
+          imageSrc: "",
+          background: "#0F172A",
+          align: "left",
+        }
+      : componentType === "gallery"
+      ? {
+          title: "Gallery",
+          images: [],
+          align: "left",
+        }
+      : componentType === "carousel"
+      ? {
+          title: "Carousel",
+          images: [],
+          align: "left",
+        }
+      : componentType === "card"
+      ? {
+          title: "Card title",
+          body: "Card description goes here.",
+          buttonText: "Learn more",
+          buttonUrl: "#",
+          align: "left",
+        }
+      : componentType === "social"
+      ? {
+          title: "Social",
+          platform: "LinkedIn",
+          url: "https://linkedin.com",
+          align: "left",
+        }
+      : componentType === "embed"
+      ? {
+          title: "Embed",
+          html: "<div>Embed code</div>",
+          align: "left",
+        }
+      : componentType === "iframe"
+      ? {
+          title: "Iframe",
+          src: "https://example.com",
+          width: 560,
+          height: 315,
+          align: "left",
+        }
+      : {
+          title: payload.item.title,
+          text: payload.item.title,
+          icon: payload.item.icon,
+          bg: payload.item.bg,
+          color: "#000000",
+          fontSize: 16,
+          bold: false,
+          italic: false,
+          underline: false,
+          align: "left",
+        };
+
   const newRow: ColumnRowEntity = {
     id: nanoid(),
     type: STRUCTURE_ENTITY.COLUMN_ROW,
-    component: payload.item.title,
+    component: componentType,
     props: {
-      title: payload.item.title,
-      text: payload.item.title,
-      icon: payload.item.icon,
-      bg: payload.item.bg,
-      color: "#000000",
-      fontSize: 16,
-      bold: false,
-      italic: false,
-      underline: false,
+      ...baseProps,
+      ...(payload.item.props ?? {}),
     },
   };
 
@@ -156,14 +278,43 @@ function insertColumnRow(
   targetCol.children.splice(insertAt, 0, newRow);
 }
 
+function duplicateColumnRow(
+  row: RowEntity,
+  payload: { rowId: string; columnId: string }
+) {
+  const column = findColumnById(row, payload.columnId);
+  if (!column) return;
+  const index = column.children.findIndex((child) => child.id === payload.rowId);
+  if (index < 0) return;
+
+  const source = column.children[index];
+  const clone = JSON.parse(JSON.stringify(source)) as ColumnRowEntity;
+  clone.id = nanoid();
+
+  column.children.splice(index + 1, 0, clone);
+}
+
+function deleteColumnRow(row: RowEntity, payload: { rowId: string; columnId: string }) {
+  const column = findColumnById(row, payload.columnId);
+  if (!column) return;
+  const index = column.children.findIndex((child) => child.id === payload.rowId);
+  if (index < 0) return;
+  column.children.splice(index, 1);
+}
+
 const handleColumnLayoutChange = (numColumns: number) => {
+  console.log("handleColumnShange =>", numColumns);
   columnsToShow.value = numColumns;
+  
 };
 
 const columns = computed<ColumnEntity[]>(() => {
-  return props.rowdata.children.filter(
+  const columns = props.rowdata.children.filter(
     (_col: ColumnEntity, index: number) => index < columnsToShow.value
   );
+  console.log(columns);
+
+  return columns;
 });
 
 const rowPanelClick = (type: string) => {
@@ -183,7 +334,7 @@ const handleMouseLeave = () => {
 const handleEditState = (payload: { isEditing: boolean }) => {
   isEditing.value = payload.isEditing;
   if (payload.isEditing) {
-    isHover.value = true;
+    isHover.value = false;
     return;
   }
   if (!isPointerInside.value) {
@@ -191,6 +342,7 @@ const handleEditState = (payload: { isEditing: boolean }) => {
   }
 };
 </script>
+
 <template>
   <UPopover
     v-model:open="isHover"
@@ -221,6 +373,8 @@ const handleEditState = (payload: { isEditing: boolean }) => {
               @reorder="(p) => moveColumnRow(rowdata, p)"
               @insert="(p) => insertColumnRow(rowdata, p)"
               @edit-state="handleEditState"
+              @duplicate="(p) => duplicateColumnRow(rowdata, p)"
+              @delete="(p) => deleteColumnRow(rowdata, p)"
             />
           </div>
           <div

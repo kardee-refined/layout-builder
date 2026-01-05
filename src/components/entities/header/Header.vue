@@ -1,36 +1,14 @@
 <script setup lang="ts">
-import Logo from "@/assets/Logo.vue";
-import { computed } from "vue";
-import PresetsModal from "../canvas/editor/presets/PresetsModal.vue";
+import { computed, defineAsyncComponent } from "vue";
+import Logo from "../../../assets/Logo.vue";
 import { emailPresets } from "../canvas/editor/presets/emailPresets";
 
+const PresetsModal = defineAsyncComponent(
+  () => import("../canvas/editor/presets/PresetsModal.vue")
+);
+
 const overlay = useOverlay();
-
 const modal = overlay.create(PresetsModal);
-
-async function open() {
-  console.log("Open Presets Modal");
-  try {
-      const instance = modal.open({
-    presets: emailPresets,
-    onSelect: (presetId: string) => {
-      console.log("Selected Preset:", presetId);
-    },
-  });
-
-  const shouldIncrement = await instance.result;
-
-  console.log("Modal closed", shouldIncrement);
-  if (shouldIncrement) {
-    console.log("User selected a preset and confirmed.");
-  } else {
-    console.log("User closed the modal without selecting a preset.");
-  }
-  } catch (error) {
-    console.error("Error opening modal:", error);
-  }
-
-}
 
 const props = defineProps<{
   isPublished: boolean;
@@ -39,10 +17,24 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "toggle-publish"): void;
-  (e: "open-presets"): void;
+  (e: "preset-select", presetId: string): void;
 }>();
 
 const publishLabel = computed(() => (props.isPublished ? "Edit" : "Publish"));
+
+function open() {
+  try {
+    modal.open({
+      presets: emailPresets,
+      onSelect: (presetId: string) => {
+        emit("preset-select", presetId);
+        modal.close();
+      },
+    });
+  } catch (error) {
+    console.error("Error opening modal:", error);
+  }
+}
 </script>
 
 <template>

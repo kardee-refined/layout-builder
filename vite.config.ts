@@ -13,6 +13,9 @@ export default defineConfig({
       theme: {
         colors: ["primary", "error", "success", "warning", "info"]
       },
+      ui: {
+
+      }
     }),
   ],
   resolve: {

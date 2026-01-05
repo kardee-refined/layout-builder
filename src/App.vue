@@ -5,6 +5,7 @@ import Sidebar from "@/components/entities/sidebar/Sidebar.vue";
 import Editor from "@/components/entities/canvas/editor/Editor.vue";
 import Renderer from "@/components/entities/canvas/renderer/Renderer.vue";
 import { generateAppData } from "@/utils/sampleData";
+import { emailPresets } from "./components/entities/canvas/editor/presets/emailPresets";
 
 const isPublished = ref(true);
 const canvas = ref(generateAppData());
@@ -18,29 +19,42 @@ const showSidebar = computed(() => !isPublished.value);
 function onSelect(tool: any) {
   console.log("clicked", tool);
 }
+
+function onPresetSelect(presetId: any) {
+  console.log("preset selected", presetId);
+  const preset = emailPresets.find((p) => p.id === presetId);
+  if (preset) {
+    console.log("preset", preset);
+
+    canvas.value = preset.build();
+  }
+}
 </script>
 
 <template>
-  <div class="bg-background">
-    <Header
-      :isPublished="isPublished"
-      :showPresets="!isPublished"
-      @toggle-publish="onTogglePublish"
-    />
-    <div
-      class="flex bg-[#f0f0f3] dark:bg-[#212225] h-[calc(100vh-64px)]"
-      :class="showSidebar ? 'pl-20' : 'pl-0'"
-    >
-      <!-- Sidebar sits fixed; you still need to keep main content offset by collapsed width -->
-      <Sidebar v-if="showSidebar" @select="onSelect" />
+  <UApp>
+    <div class="bg-background">
+      <Header
+        :isPublished="isPublished"
+        :showPresets="!isPublished"
+        @toggle-publish="onTogglePublish"
+        @preset-select="onPresetSelect"
+      />
+      <div
+        class="flex bg-[#f0f0f3] dark:bg-[#212225] h-[calc(100vh-64px)]"
+        :class="showSidebar ? 'pl-20' : 'pl-0'"
+      >
+        <!-- Sidebar sits fixed; you still need to keep main content offset by collapsed width -->
+        <Sidebar v-if="showSidebar" @select="onSelect" />
 
-      <!-- main content: keep left padding equal to collapsed width (64px) -->
-      <main class="flex-1">
-        <Editor v-if="!isPublished" :canvas="canvas" />
-        <Renderer v-else :canvas="canvas" />
-      </main>
+        <!-- main content: keep left padding equal to collapsed width (64px) -->
+        <main class="flex-1">
+          <Editor v-if="!isPublished" :canvas="canvas" />
+          <Renderer v-else :canvas="canvas" />
+        </main>
+      </div>
     </div>
-  </div>
+  </UApp>
 </template>
 
 <style scoped>

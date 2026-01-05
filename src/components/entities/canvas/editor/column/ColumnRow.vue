@@ -13,12 +13,14 @@ import {
   extractClosestEdge,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 import ColumnRowContent from "@/components/entities/canvas/shared/ColumnRowContent.vue";
+import ColumnRowEditorPopover from "./ColumnRowEditorPopover.vue";
 
 const props = defineProps<{
   data: ColumnRowEntity;
   columnId: string;
 }>();
 
+console.log("ColumnRow props:", props.data, props.columnId);
 type SidebarItem = { id: string; icon: any; bg: string; title: string };
 
 const emit = defineEmits<{
@@ -36,6 +38,8 @@ const emit = defineEmits<{
     item: SidebarItem;
   }): void;
   (e: "edit-state", payload: { isEditing: boolean }): void;
+  (e: "duplicate", payload: { rowId: string; columnId: string }): void;
+  (e: "delete", payload: { rowId: string; columnId: string }): void;
 }>();
 
 const el = ref<HTMLElement | null>(null);
@@ -43,11 +47,9 @@ const isOver = ref(false);
 const edge = ref<"top" | "bottom" | null>(null);
 const isEditing = ref(false);
 const localText = ref(props.data.props?.text ?? "");
-const localColor = ref(props.data.props?.color ?? "#000000");
-const localSize = ref<number>(props.data.props?.fontSize ?? 16);
 
-const isTextComponent = computed(() => {
-  return (props.data.component ?? "").toLowerCase() === "text";
+const componentType = computed(() => {
+  return (props.data.component ?? "").toLowerCase();
 });
 
 const textStyle = computed(() => {
@@ -61,16 +63,34 @@ const textStyle = computed(() => {
   return style;
 });
 
+const alignStyle = computed(() => ({
+  textAlign: (props.data.props?.align ?? "left") as
+    | "left"
+    | "center"
+    | "right",
+}));
+
 const applyTextUpdates = () => {
   if (!props.data.props) props.data.props = {};
   props.data.props.text = localText.value;
-  props.data.props.color = localColor.value;
-  props.data.props.fontSize = localSize.value;
 };
 
-const toggleStyle = (key: "bold" | "italic" | "underline") => {
+const inlineButtonEditing = ref(false);
+const inlineButtonText = ref(props.data.props?.text ?? "Button");
+
+const applyInlineButtonText = (value: string) => {
+  inlineButtonText.value = value;
   if (!props.data.props) props.data.props = {};
-  props.data.props[key] = !props.data.props[key];
+  props.data.props.text = value;
+};
+
+const startInlineButtonEdit = () => {
+  inlineButtonText.value = props.data.props?.text ?? "Button";
+  inlineButtonEditing.value = true;
+};
+
+const finishInlineButtonEdit = () => {
+  inlineButtonEditing.value = false;
 };
 
 const onTextInput = (event: Event) => {
@@ -81,13 +101,31 @@ const onTextInput = (event: Event) => {
 watch(
   () => props.data.props?.text,
   (value) => {
-    if (typeof value === "string") localText.value = value;
+    if (typeof value === "string") {
+      localText.value = value;
+      inlineButtonText.value = value;
+    }
   }
 );
 
 watch(isEditing, (value) => {
   emit("edit-state", { isEditing: value });
+  if (!value) {
+    focusField.value = null;
+  }
 });
+
+const focusField = ref<string | null>(null);
+
+const handleDoubleClick = () => {
+  if (componentType.value === "button") {
+    focusField.value = "buttonText";
+    startInlineButtonEdit();
+  } else {
+    focusField.value = null;
+  }
+  isEditing.value = true;
+};
 
 let cleanup: (() => void) | null = null;
 
@@ -196,65 +234,45 @@ onBeforeUnmount(() => {
       v-if="isOver && edge === 'bottom'"
       class="absolute left-0 right-0 -bottom-px h-0.5 bg-blue-500"
     />
-    <UPopover v-if="isTextComponent" v-model:open="isEditing" :content="{ side: 'top' }">
-      <template #anchor>
+    <ColumnRowEditorPopover
+      v-model:open="isEditing"
+      :type="componentType"
+      :data="data"
+      :focus-field="focusField"
+      @duplicate="emit('duplicate', { rowId: data.id, columnId: props.columnId })"
+      @delete="emit('delete', { rowId: data.id, columnId: props.columnId })"
+    >
+      <div
+        v-if="componentType === 'text'"
+        class="cursor-text"
+        contenteditable="true"
+        spellcheck="false"
+        :style="{ ...textStyle, ...alignStyle }"
+        @click.stop="isEditing = true"
+        @focus="isEditing = true"
+        @input="onTextInput"
+      >
+        {{ localText }}
+      </div>
         <div
-          class="cursor-text"
-          contenteditable="true"
-          spellcheck="false"
-          :style="textStyle"
+          v-else
+          class="cursor-pointer"
+          role="button"
+          tabindex="0"
+          :aria-label="`Edit ${componentType || 'component'}`"
           @click.stop="isEditing = true"
-          @focus="isEditing = true"
-          @input="onTextInput"
+          @dblclick.stop="handleDoubleClick"
+          @keydown.enter.prevent="isEditing = true"
+          @keydown.space.prevent="isEditing = true"
         >
-          {{ localText }}
+          <ColumnRowContent
+            :data="data"
+            :inline-button-editing="inlineButtonEditing"
+            :inline-button-text="inlineButtonText"
+            @update:inline-button-text="applyInlineButtonText"
+            @finish:inline-button-edit="finishInlineButtonEdit"
+          />
         </div>
-      </template>
-      <template #content>
-        <div class="flex flex-col gap-2 p-2 w-72">
-          <div class="flex items-center gap-2">
-            <UButton
-              size="xs"
-              variant="soft"
-              color="neutral"
-              :class="data.props?.bold ? 'bg-black/10 dark:bg-white/10' : ''"
-              label="B"
-              @click="toggleStyle('bold')"
-            />
-            <UButton
-              size="xs"
-              variant="soft"
-              color="neutral"
-              :class="data.props?.italic ? 'bg-black/10 dark:bg-white/10' : ''"
-              label="I"
-              @click="toggleStyle('italic')"
-            />
-            <UButton
-              size="xs"
-              variant="soft"
-              color="neutral"
-              :class="data.props?.underline ? 'bg-black/10 dark:bg-white/10' : ''"
-              label="U"
-              @click="toggleStyle('underline')"
-            />
-            <UInput
-              v-model="localColor"
-              type="color"
-              size="xs"
-              class="w-16"
-              @change="applyTextUpdates"
-            />
-            <UInput
-              v-model.number="localSize"
-              type="number"
-              size="xs"
-              class="w-20"
-              @change="applyTextUpdates"
-            />
-          </div>
-        </div>
-      </template>
-    </UPopover>
-    <ColumnRowContent v-else :data="data" />
+    </ColumnRowEditorPopover>
   </div>
 </template>

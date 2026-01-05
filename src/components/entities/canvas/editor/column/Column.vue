@@ -37,6 +37,8 @@ const emit = defineEmits<{
     }
   ): void;
   (e: "edit-state", payload: { isEditing: boolean }): void;
+  (e: "duplicate", payload: { rowId: string; columnId: string }): void;
+  (e: "delete", payload: { rowId: string; columnId: string }): void;
 }>();
 
 const el = ref<HTMLElement | null>(null);
@@ -149,6 +151,8 @@ onBeforeUnmount(() => {
       @reorder="emit('reorder', $event)"
       @insert="emit('insert', $event)"
       @edit-state="emit('edit-state', $event)"
+      @duplicate="emit('duplicate', $event)"
+      @delete="emit('delete', $event)"
     />
   </div>
 </template>

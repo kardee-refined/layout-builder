@@ -7,6 +7,7 @@ import {
   type RowEntity,
   type SectionEntity,
 } from "@/types/CanvasType";
+import { generateWhitepaceLandingPreset } from "./whiteSpaceLandingPage";
 
 export type EmailPreset = {
   id: string;
@@ -71,6 +72,14 @@ const createCanvas = (sections: SectionEntity[]): CanvasEntity => ({
 
 export const emailPresets: EmailPreset[] = [
   {
+    id: "landing-page",
+    name: "Whitespace Landing page",
+    description: "Landing Page template",
+    build: () => {
+      return generateWhitepaceLandingPreset();
+    },
+  },
+  {
     id: "newsletter",
     name: "Weekly Newsletter",
     description: "Header, hero, and three content highlights.",
@@ -83,7 +92,9 @@ export const emailPresets: EmailPreset[] = [
         "Catch up on the biggest stories, tips, and product news.",
         { fontSize: 16 }
       );
-      const highlight1 = createTextRow("1) Feature Spotlight: New editor tools");
+      const highlight1 = createTextRow(
+        "1) Feature Spotlight: New editor tools"
+      );
       const highlight2 = createTextRow("2) Case Study: Faster design handoffs");
       const highlight3 = createTextRow("3) Tips: 5 ways to speed up reviews");
       const footer = createTextRow("Thanks for reading. See you next week!", {

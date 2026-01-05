@@ -1,3 +1,5 @@
+import type { ComponentPropsMap } from "./ComponentType";
+
 export const STRUCTURE_ENTITY = {
   SECTION: "section",
   ROW: "row",
@@ -16,10 +18,11 @@ export type BaseEntity<T extends StructureType> = {
   children?: BaseEntity<StructureType>[];
 };
 
-export interface ColumnRowEntity
-  extends BaseEntity<typeof STRUCTURE_ENTITY.COLUMN_ROW> {
-  component: string;
-  props: Record<string, any>;
+export interface ColumnRowEntity<
+  C extends keyof ComponentPropsMap = keyof ComponentPropsMap
+> extends BaseEntity<typeof STRUCTURE_ENTITY.COLUMN_ROW> {
+  component: C;
+  props: ComponentPropsMap[C];
 }
 
 export interface ColumnEntity

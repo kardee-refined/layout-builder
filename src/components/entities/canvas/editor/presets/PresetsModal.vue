@@ -20,7 +20,7 @@ const emit = defineEmits<{ close: [boolean] }>();
 
 <template>
   <UModal :close="{ onClick: () => emit('close', false) }">
-    <template #default>
+    <template #content>
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">

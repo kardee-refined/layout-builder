@@ -17,6 +17,7 @@
     "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^2.1.2",
     "@atlaskit/pragmatic-drag-and-drop-flourish": "^2.0.9",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",
+    "@iconify-json/lucide": "^1.2.82",
     "@nuxt/ui": "^4.2.1",
     "@tailwindcss/vite": "^4.1.17",
     "@unhead/vue": "^2.0.19",
